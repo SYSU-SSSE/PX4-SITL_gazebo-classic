@@ -654,7 +654,7 @@
     </joint>
 
     <!-- Gimbal Pitch Joint (rotation around Y axis) -->
-    <joint name="gimbal_pitch_joint" type="revolute">
+    <!-- <joint name="gimbal_pitch_joint" type="revolute">
       <child>depthcamera_link</child>
       <parent>gimbal_yaw_link</parent>
       <axis>
@@ -671,12 +671,12 @@
         </dynamics>
         <use_parent_model_frame>1</use_parent_model_frame>
       </axis>
-    </joint>
+    </joint> -->
 
     <!-- ROS Joint State Publisher -->
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
       <robotNamespace>/px4vision</robotNamespace>
-      <jointName>gimbal_yaw_joint, gimbal_pitch_joint</jointName>
+      <jointName>gimbal_yaw_joint</jointName>
       <updateRate>50</updateRate>
     </plugin>
 
@@ -688,10 +688,10 @@
     </plugin>
 
     <!-- ROS Gimbal Pitch Controller -->
-    <plugin name="gimbal_pitch_controller" filename="libgazebo_ros_joint_pose_trajectory.so">
+    <!-- <plugin name="gimbal_pitch_controller" filename="libgazebo_ros_joint_pose_trajectory.so">
       <robotNamespace>/px4vision</robotNamespace>
       <jointName>gimbal_pitch_joint</jointName>
       <updateRate>50</updateRate>
-    </plugin>
+    </plugin> -->
   </model>
 </sdf>
