@@ -569,7 +569,7 @@
       <imuTopic>/imu</imuTopic>
     </plugin>
     <link name="depthcamera_link">
-      <pose>0.08 0.0 -0.01 0 0 0</pose>
+      <pose>0.0 0.0 -0.04 0 0 0</pose>
       <inertial>
         <pose>0.01 0.025 0.025 0 0 0</pose>
         <mass>0.01</mass>
@@ -585,15 +585,15 @@
       <sensor name="depth_camera" type="depth">
         <update_rate>20</update_rate>
         <camera>
-          <horizontal_fov>1.02974</horizontal_fov>
+          <horizontal_fov>1.0</horizontal_fov>
           <image>
             <format>R8G8B8</format>
-            <width>64</width>
-            <height>48</height>
+            <width>1920</width>
+            <height>1080</height>
           </image>
           <clip>
             <near>0.5</near>
-            <far>18</far>
+            <far>1800</far>
           </clip>
         </camera>
         <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_controller">
@@ -601,7 +601,7 @@
           <alwaysOn>true</alwaysOn>
           <updateRate>20</updateRate>
           <pointCloudCutoff>0.2</pointCloudCutoff>
-          <pointCloudCutoffMax>20</pointCloudCutoffMax>
+          <pointCloudCutoffMax>2000</pointCloudCutoffMax>
           <imageTopicName>rgb/image_raw</imageTopicName>
           <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
           <depthImageTopicName>depth/image_raw</depthImageTopicName>
@@ -616,16 +616,82 @@
         </plugin>
       </sensor>
     </link>
-    <joint name="depth_camera_joint" type="revolute">
-      <child>depthcamera_link</child>
+
+    <!-- Gimbal Yaw Link (intermediate link for yaw rotation) -->
+    <link name="gimbal_yaw_link">
+      <pose>0.08 0.0 -0.01 0 0 0</pose>
+      <inertial>
+        <mass>0.005</mass>
+        <inertia>
+          <ixx>1e-6</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>1e-6</iyy>
+          <iyz>0</iyz>
+          <izz>1e-6</izz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <!-- Gimbal Yaw Joint (rotation around Z axis) -->
+    <joint name="gimbal_yaw_joint" type="revolute">
+      <child>gimbal_yaw_link</child>
       <parent>base_link</parent>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
-          <upper>0</upper>
-          <lower>0</lower>
+          <lower>-3.14159</lower>
+          <upper>3.14159</upper>
+          <effort>100</effort>
+          <velocity>1.0</velocity>
         </limit>
+        <dynamics>
+          <damping>0.1</damping>
+          <friction>0.01</friction>
+        </dynamics>
+        <use_parent_model_frame>1</use_parent_model_frame>
       </axis>
     </joint>
+
+    <!-- Gimbal Pitch Joint (rotation around Y axis) -->
+    <joint name="gimbal_pitch_joint" type="revolute">
+      <child>depthcamera_link</child>
+      <parent>gimbal_yaw_link</parent>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>0.7854</upper>
+          <effort>100</effort>
+          <velocity>1.0</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.1</damping>
+          <friction>0.01</friction>
+        </dynamics>
+        <use_parent_model_frame>1</use_parent_model_frame>
+      </axis>
+    </joint>
+
+    <!-- ROS Joint State Publisher -->
+    <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+      <robotNamespace>/px4vision</robotNamespace>
+      <jointName>gimbal_yaw_joint, gimbal_pitch_joint</jointName>
+      <updateRate>50</updateRate>
+    </plugin>
+
+    <!-- ROS Gimbal Yaw Controller -->
+    <plugin name="gimbal_yaw_controller" filename="libgazebo_ros_joint_pose_trajectory.so">
+      <robotNamespace>/px4vision</robotNamespace>
+      <jointName>gimbal_yaw_joint</jointName>
+      <updateRate>50</updateRate>
+    </plugin>
+
+    <!-- ROS Gimbal Pitch Controller -->
+    <plugin name="gimbal_pitch_controller" filename="libgazebo_ros_joint_pose_trajectory.so">
+      <robotNamespace>/px4vision</robotNamespace>
+      <jointName>gimbal_pitch_joint</jointName>
+      <updateRate>50</updateRate>
+    </plugin>
   </model>
 </sdf>
