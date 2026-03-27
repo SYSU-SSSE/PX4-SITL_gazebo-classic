@@ -2,7 +2,7 @@
 <!-- DO NOT EDIT: Generated from matrice_100.sdf.jinja -->
 <sdf version="1.5">
 
-  <model name="matrice_100_cgo3">
+  <model name="matrice_100">
 
     <pose>0 0 0.2 0 0 0</pose>
 
@@ -54,23 +54,21 @@
         </surface>
       </collision>
 
-
     </link>
 
+    
+      
+      
+      
+      
 
-    <include>
-      <uri>model://cgo3</uri>
-      <pose>0 0 0.1 0 0 0</pose>
-      <name>cgo3</name>
-    </include>
+      
+        
+        
+        
+      
 
-    <joint name='cgo3_joint' type='revolute'>
-      <child>cgo3::cgo3_mount_link</child>
-      <parent>fuselage</parent>
-    </joint>
-
-
-
+      
 
 
 
@@ -197,19 +195,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -336,19 +334,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -475,19 +473,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -614,7 +612,7 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-
+    
 
     <!--Pixhawk autopilot-->
     <!--<include>-->

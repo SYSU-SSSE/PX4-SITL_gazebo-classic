@@ -58,7 +58,7 @@
 
     <include>
       <uri>model://cgo3_matrice_px4</uri>
-      <pose>0 0 0.07 0 0 0</pose>
+      <pose>0 0 0.03 0 0 0</pose>
       <name>cgo3</name>
     </include>
 
@@ -67,19 +67,19 @@
       <parent>fuselage</parent>
     </joint>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -206,19 +206,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -345,19 +345,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -484,19 +484,19 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
+    
+      
+      
+      
+      
 
+      
+        
+        
+        
+      
 
-
-
-
-
-
-
-
-
-
-
-
+      
 
 
 
@@ -623,7 +623,7 @@
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-
+    
 
     <!--Pixhawk autopilot-->
     <!--<include>-->
@@ -637,15 +637,15 @@
     <!--</joint>-->
 
     <!--3DR GPS and Magnetometer-->
-    <!--<include>-->
-      <!--<uri>model://3DR_gps_mag</uri>-->
-      <!--<pose> 0 0 0.07 0 0 0</pose>-->
-    <!--</include>-->
+    <include>
+      <uri>model://3DR_gps_mag</uri>
+      <pose> 0 0 0.07 0 0 0</pose>
+    </include>
 
-    <!--<joint name="3DR_gps_mag_joint" type="fixed">-->
-      <!--<parent>fuselage</parent>-->
-      <!--<child>3DR_gps_mag::link</child>-->
-    <!--</joint>-->
+    <joint name="3DR_gps_mag_joint" type="fixed">
+      <parent>fuselage</parent>
+      <child>3DR_gps_mag::link</child>
+    </joint>
 
     <!--This is what plugin should look like if using standard sensors-->
     <!--<plugin name="mavlink" filename="libgazebo_mavlink.so">-->

@@ -32,3 +32,5 @@ models/tailsitter/tailsitter.sdf
 models/advanced_plane/advanced_plane.sdf
 models/quadtailsitter/quadtailsitter.sdf
 models/uuv_bluerov2_heavy/uuv_bluerov2_heavy.sdf
+models/matrice_100_cgo3/matrice_100_cgo3.sdf
+models/matrice_px4_cgo3/matrice_px4_cgo3.sdf
