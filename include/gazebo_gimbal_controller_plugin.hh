@@ -37,6 +37,11 @@
 #include <gazebo/sensors/sensors.hh>
 #include <ignition/math.hh>
 
+#ifdef BUILD_WITH_ROS1
+#include <ros/ros.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#endif
+
 #include "mavlink_include.h"
 
 namespace gazebo
@@ -81,6 +86,10 @@ namespace gazebo
     public: virtual void Init();
 
     private: void OnUpdate();
+    private: void PublishOrientationStatus(
+      const ignition::math::Vector3d &currentAnglePRYVariable);
+    private: void PublishRosPitchYawStatus(
+      const ignition::math::Vector3d &currentAnglePRYVariable);
 
     private: bool InitUdp();
     private: void SendHeartbeat();
@@ -136,6 +145,16 @@ namespace gazebo
     private: double yawRateSetpoint {NAN};
 
     private: transport::NodePtr node;
+    private: transport::PublisherPtr gimbalOrientationPub;
+    private: transport::PublisherPtr gimbalPitchYawPub;
+    private: std::string gimbalOrientationTopic;
+    private: std::string gimbalPitchYawTopic;
+    private: std::string rosGimbalPitchYawTopic;
+
+#ifdef BUILD_WITH_ROS1
+    private: std::unique_ptr<ros::NodeHandle> rosNodeHandle;
+    private: ros::Publisher rosGimbalPitchYawPub;
+#endif
 
     private: common::PID pitchPid;
     private: common::PID rollPid;

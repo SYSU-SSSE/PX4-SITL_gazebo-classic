@@ -17,9 +17,12 @@
 
 #include "common.h"
 #include <gazebo/physics/physics.hh>
+#include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
 #include <gazebo_gimbal_controller_plugin.hh>
 #include <errno.h>
+#include <limits>
+#include <algorithm>
 
 using namespace gazebo;
 using namespace std;
@@ -364,6 +367,23 @@ void GimbalControllerPlugin::Load(physics::ModelPtr _model,
     this->udp_gimbal_port_remote = 13030;
   }
   gzwarn << "[gazebo_gimbal_controller_plugin] Streaming gimbal mavlink stream to ip: " << this->udp_gimbal_host_ip  << " port: " << this->udp_gimbal_port_remote << std::endl;
+
+  if (this->sdf->HasElement("gimbal_orientation_topic")) {
+    this->gimbalOrientationTopic = this->sdf->Get<std::string>("gimbal_orientation_topic");
+  } else {
+    this->gimbalOrientationTopic = "~/" + this->model->GetName() + "/gimbal/orientation_pry";
+  }
+  if (this->sdf->HasElement("gimbal_pitch_yaw_topic")) {
+    this->gimbalPitchYawTopic = this->sdf->Get<std::string>("gimbal_pitch_yaw_topic");
+  } else {
+    this->gimbalPitchYawTopic = "~/" + this->model->GetName() + "/gimbal/pitch_yaw";
+  }
+
+  if (this->sdf->HasElement("ros_gimbal_pitch_yaw_topic")) {
+    this->rosGimbalPitchYawTopic = this->sdf->Get<std::string>("ros_gimbal_pitch_yaw_topic");
+  } else {
+    this->rosGimbalPitchYawTopic = "/" + this->model->GetName() + "/gimbal/pitch_yaw";
+  }
 }
 
 /////////////////////////////////////////////////
@@ -381,6 +401,29 @@ void GimbalControllerPlugin::Init()
   // plugin update
   this->connections.push_back(event::Events::ConnectWorldUpdateBegin(
           boost::bind(&GimbalControllerPlugin::OnUpdate, this)));
+
+  if (this->node) {
+    this->gimbalOrientationPub = this->node->Advertise<gazebo::msgs::Vector3d>(this->gimbalOrientationTopic, 10);
+    this->gimbalPitchYawPub = this->node->Advertise<gazebo::msgs::Vector2d>(this->gimbalPitchYawTopic, 10);
+  }
+
+#ifdef BUILD_WITH_ROS1
+  if (!ros::isInitialized()) {
+    int argc = 0;
+    char **argv = nullptr;
+    std::string rosNodeName = "gazebo_gimbal_controller_plugin";
+    if (this->model) {
+      rosNodeName += "_" + this->model->GetName();
+      std::replace(rosNodeName.begin(), rosNodeName.end(), ':', '_');
+      std::replace(rosNodeName.begin(), rosNodeName.end(), '/', '_');
+    }
+    ros::init(argc, argv, rosNodeName,
+              ros::init_options::NoSigintHandler | ros::init_options::AnonymousName);
+  }
+  this->rosNodeHandle = std::make_unique<ros::NodeHandle>();
+  this->rosGimbalPitchYawPub =
+    this->rosNodeHandle->advertise<geometry_msgs::Vector3Stamped>(this->rosGimbalPitchYawTopic, 10);
+#endif
 
   if (InitUdp()) {
     rxThread = std::make_unique<std::thread>(&GimbalControllerPlugin::RxThread, this);
@@ -469,6 +512,8 @@ void GimbalControllerPlugin::OnUpdate()
     ignition::math::Vector3d currentAnglePRYVariable(
       detail::QtoZXY(currentAngleYPRVariable));
 #endif
+
+    PublishOrientationStatus(currentAnglePRYVariable);
 
     /// get joint limits (in sensor frame)
     /// TODO: move to Load() if limits do not change
@@ -569,6 +614,47 @@ void GimbalControllerPlugin::OnUpdate()
     SendGimbalDeviceAttitudeStatus();
     this->lastAttitudeStatusSentTime = time;
   }
+}
+
+void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
+{
+  if (this->gimbalOrientationPub && this->gimbalOrientationPub->HasConnections()) {
+    gazebo::msgs::Vector3d pryMsg;
+    pryMsg.set_x(currentAnglePRYVariable.X());
+    pryMsg.set_y(currentAnglePRYVariable.Y());
+    pryMsg.set_z(currentAnglePRYVariable.Z());
+    this->gimbalOrientationPub->Publish(pryMsg);
+  }
+  if (this->gimbalPitchYawPub && this->gimbalPitchYawPub->HasConnections()) {
+    gazebo::msgs::Vector2d pitchYawMsg;
+    // PRY ordering is [pitch, roll, yaw]; this topic intentionally exposes [pitch, yaw].
+    pitchYawMsg.set_x(currentAnglePRYVariable.X());
+    pitchYawMsg.set_y(currentAnglePRYVariable.Z());
+    this->gimbalPitchYawPub->Publish(pitchYawMsg);
+  }
+
+  PublishRosPitchYawStatus(currentAnglePRYVariable);
+}
+
+void GimbalControllerPlugin::PublishRosPitchYawStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
+{
+#ifdef BUILD_WITH_ROS1
+  if (this->rosGimbalPitchYawPub.getNumSubscribers() == 0) {
+    return;
+  }
+
+  geometry_msgs::Vector3Stamped msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "gimbal_frame";
+  // x = pitch (rad), y = yaw (rad), z is intentionally unknown.
+  msg.vector.x = currentAnglePRYVariable.X();
+  msg.vector.y = currentAnglePRYVariable.Z();
+  // Use NaN so consumers can distinguish "not provided" from a valid zero value.
+  msg.vector.z = std::numeric_limits<double>::quiet_NaN();
+  this->rosGimbalPitchYawPub.publish(msg);
+#else
+  static_cast<void>(currentAnglePRYVariable);
+#endif
 }
 
 bool GimbalControllerPlugin::InitUdp()

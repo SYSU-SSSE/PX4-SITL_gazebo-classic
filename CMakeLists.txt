@@ -127,6 +127,7 @@ if (CATKIN_DEVEL_PREFIX)
   find_package(catkin REQUIRED)
   if (catkin_FOUND)
     catkin_package()
+    add_definitions(-DBUILD_WITH_ROS1)
   else()
     message(FATAL_ERROR "catkin not found")
   endif()
@@ -500,6 +501,8 @@ endforeach()
 
 # Configure the setup script
 if (catkin_FOUND)
+  target_include_directories(gazebo_gimbal_controller_plugin PUBLIC ${catkin_INCLUDE_DIRS})
+  target_link_libraries(gazebo_gimbal_controller_plugin ${catkin_LIBRARIES})
   catkin_add_env_hooks(50_sitl_gazebo_setup
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake
     SHELLS sh)
