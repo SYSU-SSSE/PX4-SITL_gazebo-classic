@@ -394,8 +394,10 @@ void GimbalControllerPlugin::Init()
   this->connections.push_back(event::Events::ConnectWorldUpdateBegin(
           boost::bind(&GimbalControllerPlugin::OnUpdate, this)));
 
-  this->gimbalOrientationPub = this->node->Advertise<gazebo::msgs::Vector3d>(this->gimbalOrientationTopic, 10);
-  this->gimbalPitchYawPub = this->node->Advertise<gazebo::msgs::Vector2d>(this->gimbalPitchYawTopic, 10);
+  if (this->node) {
+    this->gimbalOrientationPub = this->node->Advertise<gazebo::msgs::Vector3d>(this->gimbalOrientationTopic, 10);
+    this->gimbalPitchYawPub = this->node->Advertise<gazebo::msgs::Vector2d>(this->gimbalPitchYawTopic, 10);
+  }
 
   if (InitUdp()) {
     rxThread = std::make_unique<std::thread>(&GimbalControllerPlugin::RxThread, this);
@@ -590,19 +592,18 @@ void GimbalControllerPlugin::OnUpdate()
 
 void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
 {
-  gazebo::msgs::Vector3d pryMsg;
-  pryMsg.set_x(currentAnglePRYVariable.X());
-  pryMsg.set_y(currentAnglePRYVariable.Y());
-  pryMsg.set_z(currentAnglePRYVariable.Z());
-
-  gazebo::msgs::Vector2d pitchYawMsg;
-  pitchYawMsg.set_x(currentAnglePRYVariable.X());
-  pitchYawMsg.set_y(currentAnglePRYVariable.Z());
-
-  if (this->gimbalOrientationPub) {
+  if (this->gimbalOrientationPub && this->gimbalOrientationPub->HasConnections()) {
+    gazebo::msgs::Vector3d pryMsg;
+    pryMsg.set_x(currentAnglePRYVariable.X());
+    pryMsg.set_y(currentAnglePRYVariable.Y());
+    pryMsg.set_z(currentAnglePRYVariable.Z());
     this->gimbalOrientationPub->Publish(pryMsg);
   }
-  if (this->gimbalPitchYawPub) {
+  if (this->gimbalPitchYawPub && this->gimbalPitchYawPub->HasConnections()) {
+    gazebo::msgs::Vector2d pitchYawMsg;
+    // PRY ordering is [pitch, roll, yaw]; this topic intentionally exposes [pitch, yaw].
+    pitchYawMsg.set_x(currentAnglePRYVariable.X());
+    pitchYawMsg.set_y(currentAnglePRYVariable.Z());
     this->gimbalPitchYawPub->Publish(pitchYawMsg);
   }
 }
