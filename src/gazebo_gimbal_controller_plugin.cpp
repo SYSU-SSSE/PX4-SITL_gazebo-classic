@@ -21,6 +21,8 @@
 #include <gazebo/transport/transport.hh>
 #include <gazebo_gimbal_controller_plugin.hh>
 #include <errno.h>
+#include <limits>
+#include <algorithm>
 
 using namespace gazebo;
 using namespace std;
@@ -409,8 +411,14 @@ void GimbalControllerPlugin::Init()
   if (!ros::isInitialized()) {
     int argc = 0;
     char **argv = nullptr;
-    ros::init(argc, argv, "gazebo_gimbal_controller_plugin",
-              ros::init_options::NoSigintHandler);
+    std::string rosNodeName = "gazebo_gimbal_controller_plugin";
+    if (this->model) {
+      rosNodeName += "_" + this->model->GetName();
+      std::replace(rosNodeName.begin(), rosNodeName.end(), ':', '_');
+      std::replace(rosNodeName.begin(), rosNodeName.end(), '/', '_');
+    }
+    ros::init(argc, argv, rosNodeName,
+              ros::init_options::NoSigintHandler | ros::init_options::AnonymousName);
   }
   this->rosNodeHandle = std::make_unique<ros::NodeHandle>();
   this->rosGimbalPitchYawPub =
@@ -631,16 +639,19 @@ void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vect
 void GimbalControllerPlugin::PublishRosPitchYawStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
 {
 #ifdef BUILD_WITH_ROS1
-  if (this->rosGimbalPitchYawPub) {
-    geometry_msgs::Vector3Stamped msg;
-    msg.header.stamp = ros::Time::now();
-    msg.header.frame_id = "gimbal_pry";
-    // x = pitch (rad), y = yaw (rad), z reserved
-    msg.vector.x = currentAnglePRYVariable.X();
-    msg.vector.y = currentAnglePRYVariable.Z();
-    msg.vector.z = 0.0;
-    this->rosGimbalPitchYawPub.publish(msg);
+  if (this->rosGimbalPitchYawPub.getNumSubscribers() == 0) {
+    return;
   }
+
+  geometry_msgs::Vector3Stamped msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "gimbal_frame";
+  // x = pitch (rad), y = yaw (rad), z is intentionally unknown.
+  msg.vector.x = currentAnglePRYVariable.X();
+  msg.vector.y = currentAnglePRYVariable.Z();
+  // Use NaN so consumers can distinguish "not provided" from a valid zero value.
+  msg.vector.z = std::numeric_limits<double>::quiet_NaN();
+  this->rosGimbalPitchYawPub.publish(msg);
 #else
   static_cast<void>(currentAnglePRYVariable);
 #endif
