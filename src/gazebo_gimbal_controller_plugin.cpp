@@ -17,6 +17,7 @@
 
 #include "common.h"
 #include <gazebo/physics/physics.hh>
+#include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
 #include <gazebo_gimbal_controller_plugin.hh>
 #include <errno.h>
@@ -364,6 +365,17 @@ void GimbalControllerPlugin::Load(physics::ModelPtr _model,
     this->udp_gimbal_port_remote = 13030;
   }
   gzwarn << "[gazebo_gimbal_controller_plugin] Streaming gimbal mavlink stream to ip: " << this->udp_gimbal_host_ip  << " port: " << this->udp_gimbal_port_remote << std::endl;
+
+  if (this->sdf->HasElement("gimbal_orientation_topic")) {
+    this->gimbalOrientationTopic = this->sdf->Get<std::string>("gimbal_orientation_topic");
+  } else {
+    this->gimbalOrientationTopic = "~/" + this->model->GetName() + "/gimbal/orientation_pry";
+  }
+  if (this->sdf->HasElement("gimbal_pitch_yaw_topic")) {
+    this->gimbalPitchYawTopic = this->sdf->Get<std::string>("gimbal_pitch_yaw_topic");
+  } else {
+    this->gimbalPitchYawTopic = "~/" + this->model->GetName() + "/gimbal/pitch_yaw";
+  }
 }
 
 /////////////////////////////////////////////////
@@ -381,6 +393,9 @@ void GimbalControllerPlugin::Init()
   // plugin update
   this->connections.push_back(event::Events::ConnectWorldUpdateBegin(
           boost::bind(&GimbalControllerPlugin::OnUpdate, this)));
+
+  this->gimbalOrientationPub = this->node->Advertise<gazebo::msgs::Vector3d>(this->gimbalOrientationTopic, 10);
+  this->gimbalPitchYawPub = this->node->Advertise<gazebo::msgs::Vector2d>(this->gimbalPitchYawTopic, 10);
 
   if (InitUdp()) {
     rxThread = std::make_unique<std::thread>(&GimbalControllerPlugin::RxThread, this);
@@ -469,6 +484,8 @@ void GimbalControllerPlugin::OnUpdate()
     ignition::math::Vector3d currentAnglePRYVariable(
       detail::QtoZXY(currentAngleYPRVariable));
 #endif
+
+    PublishOrientationStatus(currentAnglePRYVariable);
 
     /// get joint limits (in sensor frame)
     /// TODO: move to Load() if limits do not change
@@ -568,6 +585,25 @@ void GimbalControllerPlugin::OnUpdate()
   if (sendingAttitudeStatus && time > this->lastAttitudeStatusSentTime + attitudeStatusIntervalS) {
     SendGimbalDeviceAttitudeStatus();
     this->lastAttitudeStatusSentTime = time;
+  }
+}
+
+void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
+{
+  gazebo::msgs::Vector3d pryMsg;
+  pryMsg.set_x(currentAnglePRYVariable.X());
+  pryMsg.set_y(currentAnglePRYVariable.Y());
+  pryMsg.set_z(currentAnglePRYVariable.Z());
+
+  gazebo::msgs::Vector2d pitchYawMsg;
+  pitchYawMsg.set_x(currentAnglePRYVariable.X());
+  pitchYawMsg.set_y(currentAnglePRYVariable.Z());
+
+  if (this->gimbalOrientationPub) {
+    this->gimbalOrientationPub->Publish(pryMsg);
+  }
+  if (this->gimbalPitchYawPub) {
+    this->gimbalPitchYawPub->Publish(pitchYawMsg);
   }
 }
 

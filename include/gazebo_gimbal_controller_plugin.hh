@@ -81,6 +81,8 @@ namespace gazebo
     public: virtual void Init();
 
     private: void OnUpdate();
+    private: void PublishOrientationStatus(
+      const ignition::math::Vector3d &currentAnglePRYVariable);
 
     private: bool InitUdp();
     private: void SendHeartbeat();
@@ -136,6 +138,10 @@ namespace gazebo
     private: double yawRateSetpoint {NAN};
 
     private: transport::NodePtr node;
+    private: transport::PublisherPtr gimbalOrientationPub;
+    private: transport::PublisherPtr gimbalPitchYawPub;
+    private: std::string gimbalOrientationTopic;
+    private: std::string gimbalPitchYawTopic;
 
     private: common::PID pitchPid;
     private: common::PID rollPid;
