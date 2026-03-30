@@ -500,6 +500,9 @@ endforeach()
 
 # Configure the setup script
 if (catkin_FOUND)
+  add_definitions(-DBUILD_WITH_ROS1)
+  include_directories(${catkin_INCLUDE_DIRS})
+  target_link_libraries(gazebo_gimbal_controller_plugin ${catkin_LIBRARIES})
   catkin_add_env_hooks(50_sitl_gazebo_setup
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake
     SHELLS sh)

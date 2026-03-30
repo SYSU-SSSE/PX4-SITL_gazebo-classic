@@ -376,6 +376,12 @@ void GimbalControllerPlugin::Load(physics::ModelPtr _model,
   } else {
     this->gimbalPitchYawTopic = "~/" + this->model->GetName() + "/gimbal/pitch_yaw";
   }
+
+  if (this->sdf->HasElement("ros_gimbal_pitch_yaw_topic")) {
+    this->rosGimbalPitchYawTopic = this->sdf->Get<std::string>("ros_gimbal_pitch_yaw_topic");
+  } else {
+    this->rosGimbalPitchYawTopic = "/" + this->model->GetName() + "/gimbal/pitch_yaw";
+  }
 }
 
 /////////////////////////////////////////////////
@@ -398,6 +404,18 @@ void GimbalControllerPlugin::Init()
     this->gimbalOrientationPub = this->node->Advertise<gazebo::msgs::Vector3d>(this->gimbalOrientationTopic, 10);
     this->gimbalPitchYawPub = this->node->Advertise<gazebo::msgs::Vector2d>(this->gimbalPitchYawTopic, 10);
   }
+
+#ifdef BUILD_WITH_ROS1
+  if (!ros::isInitialized()) {
+    int argc = 0;
+    char **argv = nullptr;
+    ros::init(argc, argv, "gazebo_gimbal_controller_plugin",
+              ros::init_options::NoSigintHandler);
+  }
+  this->rosNodeHandle = std::make_unique<ros::NodeHandle>();
+  this->rosGimbalPitchYawPub =
+    this->rosNodeHandle->advertise<geometry_msgs::Vector3Stamped>(this->rosGimbalPitchYawTopic, 10);
+#endif
 
   if (InitUdp()) {
     rxThread = std::make_unique<std::thread>(&GimbalControllerPlugin::RxThread, this);
@@ -606,6 +624,26 @@ void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vect
     pitchYawMsg.set_y(currentAnglePRYVariable.Z());
     this->gimbalPitchYawPub->Publish(pitchYawMsg);
   }
+
+  PublishRosPitchYawStatus(currentAnglePRYVariable);
+}
+
+void GimbalControllerPlugin::PublishRosPitchYawStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
+{
+#ifdef BUILD_WITH_ROS1
+  if (this->rosGimbalPitchYawPub) {
+    geometry_msgs::Vector3Stamped msg;
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = "gimbal_pry";
+    // x = pitch (rad), y = yaw (rad), z reserved
+    msg.vector.x = currentAnglePRYVariable.X();
+    msg.vector.y = currentAnglePRYVariable.Z();
+    msg.vector.z = 0.0;
+    this->rosGimbalPitchYawPub.publish(msg);
+  }
+#else
+  static_cast<void>(currentAnglePRYVariable);
+#endif
 }
 
 bool GimbalControllerPlugin::InitUdp()
