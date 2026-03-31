@@ -1,6 +1,6 @@
 
 
-if(ENABLE_UNIT_TESTS OR CATKIN_ENABLE_TESTING)
+if(ENABLE_UNIT_TESTS)
 
 # Uniform way to add unit tests. This works with catkin and with plain CMake.
 function(add_unit_test target) # add sources as ARGN
@@ -10,11 +10,6 @@ function(add_unit_test target) # add sources as ARGN
         # Plain CMake to add google test
         add_executable(${target} ${ARGN})
         add_test(${target} ${target})
-
-    elseif(CATKIN_ENABLE_TESTING)
-
-        # Catkin google test facilities
-        catkin_add_gtest(${target} ${ARGN})
 
     endif(ENABLE_UNIT_TESTS)
 
@@ -38,4 +33,4 @@ endfunction(add_unit_test)
     # target_link_libraries(gazebo_gps_plugin_test gazebo_gps_plugin)
 
 
-endif(ENABLE_UNIT_TESTS OR CATKIN_ENABLE_TESTING)
+endif(ENABLE_UNIT_TESTS)

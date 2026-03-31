@@ -384,6 +384,22 @@ void GimbalControllerPlugin::Load(physics::ModelPtr _model,
   } else {
     this->rosGimbalPitchYawTopic = "/" + this->model->GetName() + "/gimbal/pitch_yaw";
   }
+
+  if (this->sdf->HasElement("ros_gimbal_yaw_pitch_topic")) {
+    this->rosGimbalYawPitchTopic = this->sdf->Get<std::string>("ros_gimbal_yaw_pitch_topic");
+  } else {
+    this->rosGimbalYawPitchTopic = this->rosGimbalPitchYawTopic;
+    const std::string pitchYawSuffix = "/pitch_yaw";
+    const std::string yawPitchSuffix = "/yaw_pitch";
+    const size_t suffixPos = this->rosGimbalYawPitchTopic.rfind(pitchYawSuffix);
+
+    if (suffixPos != std::string::npos
+        && suffixPos + pitchYawSuffix.size() == this->rosGimbalYawPitchTopic.size()) {
+      this->rosGimbalYawPitchTopic.replace(suffixPos, pitchYawSuffix.size(), yawPitchSuffix);
+    } else {
+      this->rosGimbalYawPitchTopic += "_yaw_pitch";
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -423,6 +439,8 @@ void GimbalControllerPlugin::Init()
   this->rosNodeHandle = std::make_unique<ros::NodeHandle>();
   this->rosGimbalPitchYawPub =
     this->rosNodeHandle->advertise<geometry_msgs::Vector3Stamped>(this->rosGimbalPitchYawTopic, 10);
+  this->rosGimbalYawPitchPub =
+    this->rosNodeHandle->advertise<sensor_msgs::JointState>(this->rosGimbalYawPitchTopic, 10);
 #endif
 
   if (InitUdp()) {
@@ -639,19 +657,35 @@ void GimbalControllerPlugin::PublishOrientationStatus(const ignition::math::Vect
 void GimbalControllerPlugin::PublishRosPitchYawStatus(const ignition::math::Vector3d &currentAnglePRYVariable)
 {
 #ifdef BUILD_WITH_ROS1
-  if (this->rosGimbalPitchYawPub.getNumSubscribers() == 0) {
+  const bool hasPitchYawSubscribers = this->rosGimbalPitchYawPub.getNumSubscribers() > 0;
+  const bool hasYawPitchSubscribers = this->rosGimbalYawPitchPub.getNumSubscribers() > 0;
+
+  if (!hasPitchYawSubscribers && !hasYawPitchSubscribers) {
     return;
   }
 
-  geometry_msgs::Vector3Stamped msg;
-  msg.header.stamp = ros::Time::now();
-  msg.header.frame_id = "gimbal_frame";
-  // x = pitch (rad), y = yaw (rad), z is intentionally unknown.
-  msg.vector.x = currentAnglePRYVariable.X();
-  msg.vector.y = currentAnglePRYVariable.Z();
-  // Use NaN so consumers can distinguish "not provided" from a valid zero value.
-  msg.vector.z = std::numeric_limits<double>::quiet_NaN();
-  this->rosGimbalPitchYawPub.publish(msg);
+  const ros::Time now = ros::Time::now();
+
+  if (hasPitchYawSubscribers) {
+    geometry_msgs::Vector3Stamped msg;
+    msg.header.stamp = now;
+    msg.header.frame_id = "gimbal_frame";
+    // x = pitch (rad), y = yaw (rad), z is intentionally unknown.
+    msg.vector.x = currentAnglePRYVariable.X();
+    msg.vector.y = currentAnglePRYVariable.Z();
+    // Use NaN so consumers can distinguish "not provided" from a valid zero value.
+    msg.vector.z = std::numeric_limits<double>::quiet_NaN();
+    this->rosGimbalPitchYawPub.publish(msg);
+  }
+
+  if (hasYawPitchSubscribers) {
+    sensor_msgs::JointState yawPitchMsg;
+    yawPitchMsg.header.stamp = now;
+    yawPitchMsg.header.frame_id = "gimbal_frame";
+    yawPitchMsg.name = {"yaw", "pitch"};
+    yawPitchMsg.position = {currentAnglePRYVariable.Z(), currentAnglePRYVariable.X()};
+    this->rosGimbalYawPitchPub.publish(yawPitchMsg);
+  }
 #else
   static_cast<void>(currentAnglePRYVariable);
 #endif

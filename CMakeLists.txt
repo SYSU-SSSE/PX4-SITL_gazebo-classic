@@ -121,18 +121,25 @@ if(MAVLINK_DEVELOPMENT)
   add_definitions(-DMAVLINK_DEVELOPMENT)
 endif()
 
-# see if catkin was invoked to build this
-if (CATKIN_DEVEL_PREFIX)
-  message(STATUS "catkin ENABLED")
-  find_package(catkin REQUIRED)
+# Enable ROS1 interfaces if catkin is available, even when building from PX4 (non-catkin workspace).
+set(BUILD_WITH_ROS1_IF_AVAILABLE ON CACHE BOOL "Enable ROS1 support in plugins when catkin is available")
+set(HAVE_ROS1 OFF)
+
+if (BUILD_WITH_ROS1_IF_AVAILABLE)
+  find_package(catkin QUIET COMPONENTS roscpp geometry_msgs sensor_msgs)
+
   if (catkin_FOUND)
-    catkin_package()
-    add_definitions(-DBUILD_WITH_ROS1)
+    message(STATUS "ROS1 interface ENABLED (catkin found)")
+    set(HAVE_ROS1 ON)
   else()
-    message(FATAL_ERROR "catkin not found")
+    message(STATUS "ROS1 interface DISABLED (catkin not found)")
   endif()
 else()
-  message(STATUS "catkin DISABLED")
+  message(STATUS "ROS1 interface DISABLED by BUILD_WITH_ROS1_IF_AVAILABLE=OFF")
+endif()
+
+if (HAVE_ROS1)
+  add_definitions(-DBUILD_WITH_ROS1)
 endif()
 
 # XXX this approach is extremely error prone
@@ -500,12 +507,9 @@ foreach(plugin ${plugins})
 endforeach()
 
 # Configure the setup script
-if (catkin_FOUND)
+if (HAVE_ROS1)
   target_include_directories(gazebo_gimbal_controller_plugin PUBLIC ${catkin_INCLUDE_DIRS})
   target_link_libraries(gazebo_gimbal_controller_plugin ${catkin_LIBRARIES})
-  catkin_add_env_hooks(50_sitl_gazebo_setup
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake
-    SHELLS sh)
 endif()
 
 

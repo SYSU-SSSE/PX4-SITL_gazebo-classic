@@ -40,6 +40,7 @@
 #ifdef BUILD_WITH_ROS1
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/JointState.h>
 #endif
 
 #include "mavlink_include.h"
@@ -150,10 +151,12 @@ namespace gazebo
     private: std::string gimbalOrientationTopic;
     private: std::string gimbalPitchYawTopic;
     private: std::string rosGimbalPitchYawTopic;
+    private: std::string rosGimbalYawPitchTopic;
 
 #ifdef BUILD_WITH_ROS1
     private: std::unique_ptr<ros::NodeHandle> rosNodeHandle;
     private: ros::Publisher rosGimbalPitchYawPub;
+    private: ros::Publisher rosGimbalYawPitchPub;
 #endif
 
     private: common::PID pitchPid;
