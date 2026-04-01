@@ -58,11 +58,12 @@
 
     <include>
       <uri>model://cgo3_matrice_px4</uri>
-      <pose>0 0 0.03 0 0 0</pose>
+      <pose>0.3 0 0.03 0 0 0</pose>
       <name>cgo3</name>
     </include>
 
     <joint name='cgo3_joint' type='fixed'>
+      <pose>0.3 0 0.03 0 0 0</pose>
       <child>cgo3::cgo3_mount_link</child>
       <parent>fuselage</parent>
     </joint>
@@ -90,7 +91,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>0.22980970388562796 -0.22980970388562794 0.06 0 0 0</pose>
+      <pose>0.229809703885628 -0.22980970388562796 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -229,7 +230,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>-0.22980970388562794 0.22980970388562796 0.06 0 0 0</pose>
+      <pose>-0.22980970388562794 0.229809703885628 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -368,7 +369,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>0.22980970388562796 0.22980970388562794 0.06 0 0 0</pose>
+      <pose>0.229809703885628 0.22980970388562796 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -507,7 +508,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>-0.22980970388562794 -0.22980970388562796 0.06 0 0 0</pose>
+      <pose>-0.22980970388562794 -0.229809703885628 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>

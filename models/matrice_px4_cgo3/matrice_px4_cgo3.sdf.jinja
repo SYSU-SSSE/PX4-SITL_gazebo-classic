@@ -130,11 +130,12 @@
 
     <include>
       <uri>model://cgo3_matrice_px4</uri>
-      <pose>0 0 0.03 0 0 0</pose>
+      <pose>0.3 0 0.03 0 0 0</pose>
       <name>cgo3</name>
     </include>
 
     <joint name='cgo3_joint' type='fixed'>
+      <pose>0.3 0 0.03 0 0 0</pose>
       <child>cgo3::cgo3_mount_link</child>
       <parent>fuselage</parent>
     </joint>
