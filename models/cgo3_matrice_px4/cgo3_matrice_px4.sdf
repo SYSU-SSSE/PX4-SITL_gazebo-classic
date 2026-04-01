@@ -258,6 +258,14 @@
             <udpHost>127.0.0.1</udpHost>
             <udpPort>5600</udpPort>
         </plugin>
+        <plugin name="ros_camera" filename="libgazebo_ros_camera.so">
+          <robotNamespace>/uav0</robotNamespace>
+          <cameraName>camera</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>camera_link</frameName>
+          <updateRate>10.0</updateRate>
+        </plugin>
         <plugin name="CameraManagerPlugin" filename="libgazebo_camera_manager_plugin.so">
           <robotNamespace>matrice_px4_cgo3</robotNamespace>
             <interval>1</interval>
