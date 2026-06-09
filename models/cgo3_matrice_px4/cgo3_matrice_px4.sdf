@@ -279,7 +279,7 @@
         <xyz>0 -1 0</xyz>
         <limit>
           <lower>-1.5708</lower>
-          <upper>0.7854</upper>
+          <upper>1.5708</upper>
           <effort>100</effort>
           <velocity>-1</velocity>
         </limit>

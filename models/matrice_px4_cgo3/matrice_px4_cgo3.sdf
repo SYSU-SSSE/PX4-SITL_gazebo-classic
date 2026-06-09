@@ -58,7 +58,7 @@
 
     <include>
       <uri>model://cgo3_matrice_px4</uri>
-      <pose>0.3 0 0.03 0 0 0</pose>
+      <pose>0.4 0 0.1 0 0 0</pose>
       <name>cgo3</name>
     </include>
 
@@ -68,19 +68,19 @@
       <parent>fuselage</parent>
     </joint>
 
-    
-      
-      
-      
-      
 
-      
-        
-        
-        
-      
 
-      
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -91,7 +91,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>0.229809703885628 -0.22980970388562796 0.06 0 0 0</pose>
+      <pose>0.22980970388562796 -0.22980970388562794 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -201,25 +201,25 @@
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>0</motorNumber>
-      <rotorDragCoefficient>0.000806428</rotorDragCoefficient>
+      <rotorDragCoefficient>0.00005</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/0</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-    
-      
-      
-      
-      
 
-      
-        
-        
-        
-      
 
-      
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -230,7 +230,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>-0.22980970388562794 0.229809703885628 0.06 0 0 0</pose>
+      <pose>-0.22980970388562794 0.22980970388562796 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -340,25 +340,25 @@
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>1</motorNumber>
-      <rotorDragCoefficient>0.000806428</rotorDragCoefficient>
+      <rotorDragCoefficient>0.00005</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/1</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-    
-      
-      
-      
-      
 
-      
-        
-        
-        
-      
 
-      
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -369,7 +369,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>0.229809703885628 0.22980970388562796 0.06 0 0 0</pose>
+      <pose>0.22980970388562796 0.22980970388562794 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -479,25 +479,25 @@
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>2</motorNumber>
-      <rotorDragCoefficient>0.000806428</rotorDragCoefficient>
+      <rotorDragCoefficient>0.00005</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/2</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-    
-      
-      
-      
-      
 
-      
-        
-        
-        
-      
 
-      
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -508,7 +508,7 @@
       <self_collide>false</self_collide>
       <velocity_decay/>
 
-      <pose>-0.22980970388562794 -0.229809703885628 0.06 0 0 0</pose>
+      <pose>-0.22980970388562794 -0.22980970388562796 0.06 0 0 0</pose>
       <inertial>
           <mass>0.019</mass>
           <inertia>
@@ -618,13 +618,13 @@
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>3</motorNumber>
-      <rotorDragCoefficient>0.000806428</rotorDragCoefficient>
+      <rotorDragCoefficient>0.00005</rotorDragCoefficient>
       <rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
       <motorSpeedPubTopic>/motor_speed/3</motorSpeedPubTopic>
       <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
     </plugin>
 
-    
+
 
     <!--Pixhawk autopilot-->
     <!--<include>-->
@@ -775,37 +775,37 @@
       <control_gimbal_channels>
         <channel>
           <joint_control_pid>
-            <p>0.4</p>
-            <i>0.05</i>
-            <d>0.02</d>
-            <iMax>0</iMax>
-            <iMin>0</iMin>
-            <cmdMax>1.0</cmdMax>
-            <cmdMin>-1.0</cmdMin>
+            <p>2.0</p>
+            <i>0.20</i>
+            <d>0.04</d>
+            <iMax>0.5</iMax>
+            <iMin>-0.5</iMin>
+            <cmdMax>2.0</cmdMax>
+            <cmdMin>-2.0</cmdMin>
           </joint_control_pid>
           <joint_axis>joint_yaw</joint_axis>
         </channel>
         <channel>
           <joint_control_pid>
-            <p>0.8</p>
-            <i>0.035</i>
-            <d>0.02</d>
-            <iMax>0</iMax>
-            <iMin>0</iMin>
-            <cmdMax>0.3</cmdMax>
-            <cmdMin>-0.3</cmdMin>
+            <p>2.5</p>
+            <i>0.20</i>
+            <d>0.04</d>
+            <iMax>0.4</iMax>
+            <iMin>-0.4</iMin>
+            <cmdMax>1.2</cmdMax>
+            <cmdMin>-1.2</cmdMin>
           </joint_control_pid>
           <joint_axis>joint_roll</joint_axis>
         </channel>
         <channel>
           <joint_control_pid>
-            <p>0.3</p>
-            <i>0.01245</i>
-            <d>0.015</d>
-            <iMax>0</iMax>
-            <iMin>0</iMin>
-            <cmdMax>0.3</cmdMax>
-            <cmdMin>-0.3</cmdMin>
+            <p>2.0</p>
+            <i>0.25</i>
+            <d>0.04</d>
+            <iMax>0.6</iMax>
+            <iMin>-0.6</iMin>
+            <cmdMax>1.5</cmdMax>
+            <cmdMin>-1.5</cmdMin>
           </joint_control_pid>
           <joint_axis>joint_pitch</joint_axis>
         </channel>

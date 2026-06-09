@@ -157,6 +157,9 @@ namespace gazebo
     private: std::unique_ptr<ros::NodeHandle> rosNodeHandle;
     private: ros::Publisher rosGimbalPitchYawPub;
     private: ros::Publisher rosGimbalYawPitchPub;
+    private: ros::Subscriber rosGimbalCmdSub;
+    private: void OnRosGimbalCmd(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+    private: std::string rosGimbalCmdTopic;
 #endif
 
     private: common::PID pitchPid;

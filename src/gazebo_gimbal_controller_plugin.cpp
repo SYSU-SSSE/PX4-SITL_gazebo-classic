@@ -400,6 +400,12 @@ void GimbalControllerPlugin::Load(physics::ModelPtr _model,
       this->rosGimbalYawPitchTopic += "_yaw_pitch";
     }
   }
+
+  if (this->sdf->HasElement("ros_gimbal_cmd_topic")) {
+    this->rosGimbalCmdTopic = this->sdf->Get<std::string>("ros_gimbal_cmd_topic");
+  } else {
+    this->rosGimbalCmdTopic = "/" + this->model->GetName() + "/gimbal/pitch_yaw_cmd";
+  }
 }
 
 /////////////////////////////////////////////////
@@ -441,6 +447,8 @@ void GimbalControllerPlugin::Init()
     this->rosNodeHandle->advertise<geometry_msgs::Vector3Stamped>(this->rosGimbalPitchYawTopic, 10);
   this->rosGimbalYawPitchPub =
     this->rosNodeHandle->advertise<sensor_msgs::JointState>(this->rosGimbalYawPitchTopic, 10);
+  this->rosGimbalCmdSub = this->rosNodeHandle->subscribe(
+    this->rosGimbalCmdTopic, 10, &GimbalControllerPlugin::OnRosGimbalCmd, this);
 #endif
 
   if (InitUdp()) {
@@ -451,6 +459,9 @@ void GimbalControllerPlugin::Init()
 /////////////////////////////////////////////////
 void GimbalControllerPlugin::OnUpdate()
 {
+#ifdef BUILD_WITH_ROS1
+  ros::spinOnce();
+#endif
   const std::lock_guard<std::mutex> lock(cmd_mutex);
 
   if (!this->pitchJoint || !this->rollJoint || !this->yawJoint)
@@ -946,6 +957,20 @@ void GimbalControllerPlugin::HandleCommandLong(const mavlink_message_t& msg)
       }
       break;
   }
+}
+
+void GimbalControllerPlugin::OnRosGimbalCmd(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+{
+  // Direct ROS command: bypass MAVLink/PX4, set pitch/yaw setpoints directly.
+  // msg->vector.x = pitch (rad), msg->vector.y = yaw (rad)
+  const std::lock_guard<std::mutex> lock(setpointMutex);
+  this->rollSetpoint = 0.0f;
+  this->pitchSetpoint = msg->vector.x;
+  this->yawSetpoint = msg->vector.y;
+  this->yawLock = false;
+  this->rollRateSetpoint = NAN;
+  this->pitchRateSetpoint = NAN;
+  this->yawRateSetpoint = NAN;
 }
 
 void GimbalControllerPlugin::HandleGimbalDeviceSetAttitude(const mavlink_message_t& msg)
